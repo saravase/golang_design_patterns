@@ -21,12 +21,12 @@ import (
 )
 
 type User struct {
-	name     string
-	password string
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
 }
 
 type IUser interface {
-	AddUser(user *User) error
+	GetUser(id int64) (*User, error)
 }
 
 type manager struct {
@@ -34,7 +34,7 @@ type manager struct {
 }
 
 func NewManager() *manager {
-	dsn := "host=localhost user=xxxx password=xxxx dbname=xxxx port=9920 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "host=localhost user=primz password=primz@2207 dbname=primz port=5432 sslmode=disable TimeZone=Asia/Kolkata"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("DB connection creation failed. Reason : %v\n", err)
@@ -45,11 +45,12 @@ func NewManager() *manager {
 	}
 }
 
-func (m *manager) AddUser(user *User) error {
-	r := m.db.Create(user)
+func (m *manager) GetUser(id int64) (*User, error) {
+	user := new(User)
+	r := m.db.Where("id = ?", id).Find(user)
 	if err := r.Error; err != nil {
-		log.Fatalf("User creation failed. Reason : %v\n", err)
-		return err
+		log.Fatalf("User not found. Reason : %v\n", err)
+		return nil, err
 	}
-	return nil
+	return user, nil
 }
